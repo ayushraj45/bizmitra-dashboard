@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../services/api';
@@ -18,6 +17,11 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    if (!email || !password) {
+        setError('Email and password are required.');
+        setIsLoading(false);
+        return;
+    }
     try {
       await login(email, password);
       onLoginSuccess();
@@ -65,7 +69,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
           <div>
             <button
               type="submit"

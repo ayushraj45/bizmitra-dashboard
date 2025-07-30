@@ -1,139 +1,176 @@
+import { Client, Task, Booking, MessageTemplate, BusinessProfile } from '../types';
+import { API_URL } from '../constants';
 
-import { Client, Task, Booking, MessageTemplate, BusinessProfile, TaskUrgency, TemplateStatus, Timezone } from '../types';
-
-// MOCK DATABASE
-const MOCK_CLIENTS: Client[] = [
-  { id: '1', name: 'John Doe', email: 'john.d@example.com', phone: '123-456-7890', lastContact: '2024-07-20', avatarUrl: 'https://picsum.photos/id/237/200/200', notes: 'Interested in web design services.' },
-  { id: '2', name: 'Jane Smith', email: 'jane.s@example.com', phone: '234-567-8901', lastContact: '2024-07-18', avatarUrl: 'https://picsum.photos/id/238/200/200', notes: '' },
-  { id: '3', name: 'Sam Wilson', email: 'sam.w@example.com', phone: '345-678-9012', lastContact: '2024-07-21', avatarUrl: 'https://picsum.photos/id/239/200/200', notes: 'Scheduled a follow-up call.' },
-];
-
-const MOCK_TASKS: Task[] = [
-  { id: 't1', title: 'Follow up with John Doe', createdAt: '2024-07-20', urgency: TaskUrgency.HIGH, client: 'John Doe' },
-  { id: 't2', title: 'Prepare proposal for Jane Smith', createdAt: '2024-07-19', urgency: TaskUrgency.MEDIUM },
-  { id: 't3', title: 'Send invoice to Acme Corp', createdAt: '2024-07-22', urgency: TaskUrgency.LOW },
-  { id: 't4', title: 'Fix landing page bug', createdAt: '2024-07-22', urgency: TaskUrgency.CRITICAL },
-];
-
-const MOCK_BOOKINGS: Booking[] = [
-    { id: 'b1', clientName: 'Alice Johnson', service: 'Consultation Call', dateTime: '2024-08-01T10:00:00', status: 'Upcoming' },
-    { id: 'b2', clientName: 'Bob Williams', service: 'Project Kickoff', dateTime: '2024-08-02T14:30:00', status: 'Upcoming' },
-    { id: 'b3', clientName: 'Charlie Brown', service: 'Final Review', dateTime: '2024-07-15T11:00:00', status: 'Completed' },
-];
-
-const MOCK_TEMPLATES: MessageTemplate[] = [
-    { id: 'mt1', name: 'welcome_message', language: 'English', status: TemplateStatus.APPROVED, content: 'Hello {{1}}! Welcome to our service.' },
-    { id: 'mt2', name: 'appointment_reminder', language: 'English', status: TemplateStatus.APPROVED, content: 'Hi {{1}}, this is a reminder for your appointment on {{2}}.' },
-    { id: 'mt3', name: 'offer_promo', language: 'Spanish', status: TemplateStatus.PENDING, content: 'Hola {{1}}, tenemos una nueva oferta para ti!' },
-];
-
-let MOCK_PROFILE: BusinessProfile = {
-    businessName: 'Creative Solutions Inc.',
-    email: 'contact@creativesolutions.com',
-    phone: '555-123-4567',
-    businessType: 'Digital Agency',
-    timezone: Timezone.US,
-    operatingHours: 'Mon-Fri, 9 AM - 6 PM EST',
-    services: 'Web Design, SEO, Social Media Marketing',
-    instructions: 'For urgent matters, please call. For all other inquiries, please allow up to 24 hours for a response via WhatsApp.',
-};
-
-// Simulate network delay
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
-
-// API Functions
-export const login = async (email: string, pass: string) => {
-    await delay(500);
-    if (email && pass) {
-        return { success: true, token: 'fake-jwt-token' };
-    }
-    throw new Error('Invalid credentials');
-};
-
-export const register = async (data: any) => {
-    await delay(700);
-    console.log('Registering with data:', data);
-    return { success: true, token: 'fake-jwt-token-new' };
-};
-
-export const getDashboardSummary = async () => {
-    await delay(500);
-    return {
-        upcomingBookings: MOCK_BOOKINGS.filter(b => b.status === 'Upcoming').length,
-        openTasks: MOCK_TASKS.length,
-        totalClients: MOCK_CLIENTS.length,
-        revenue: 5230.75
+// --- Helper function for API requests ---
+// This function will automatically add the auth token to requests
+// and handle basic error scenarios.
+const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
+    const token = localStorage.getItem('authToken');
+    
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(options.headers as Record<string, string>),
     };
+
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // Throw an error if API_URL is not set.
+    if (!API_URL) {
+        throw new Error("API_URL is not configured. Please set it in constants.tsx.");
+    }
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers,
+    });
+
+    if (!response.ok) {
+        let errorData;
+        try {
+            errorData = await response.json();
+        } catch (e) {
+            errorData = { message: `HTTP Error: ${response.statusText}` };
+        }
+        throw new Error(errorData.message || `Request failed with status ${response.status}`);
+    }
+
+    // Return null for 204 No Content responses
+    if (response.status === 204) {
+        return null;
+    }
+
+    return response.json();
+};
+
+
+// --- Authentication ---
+// NOTE: Adjust the '/auth/login' endpoint if yours is different.
+export const login = async (email: string, pass: string) => {
+    const data = await apiFetch('/business/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password: pass }),
+    });
+    // The backend should return a { token: '...' } object on success
+    if (data && data.token) {
+        console.log('Login successful, token received:', data.token);
+        console.log('Login successful, data received:', data);
+
+        localStorage.setItem('authToken', data.token);
+    } else {
+         throw new Error('Login successful, but no token was provided.');
+    }
+    return data;
+};
+
+// NOTE: Adjust the '/auth/register' endpoint if yours is different.
+export const register = async (registerData: any) => {
+        console.log('Register payload:', registerData);
+     const data = await apiFetch('/business/register', {
+        method: 'POST',
+        body: JSON.stringify(registerData),
+    });
+    if (data && data.token) {
+        localStorage.setItem('authToken', data.token);
+    } else {
+         throw new Error('Registration successful, but no token was provided.');
+    }
+    return data;
+};
+
+// --- Dashboard ---
+// NOTE: Endpoint '/dashboard/summary' is an assumption. Change if needed.
+export const getDashboardSummary = async () => {
+    const tasks = (await getTasks()).btasks.length;
+    console.log('Fetched tasks:', tasks);
+
+    const clients = (await getClients()).bclients.length;
+    console.log('Fetched clients:', clients);
+    const bookings = (await getBookings()).bookings.length;
+    console.log('Fetched bookings:', bookings);
+    const revenue = 0;
+    return {
+        openTasks: tasks,
+        totalClients: clients,
+        upcomingBookings: bookings,   
+        revenue
+    }
 };
 
 export const getNewTasks = async () => {
-    await delay(300);
-    return MOCK_TASKS.slice(0, 5);
+    // Fetches the 5 most recent tasks. Assumes the API supports query params.
+    return apiFetch('/api/btasks?limit=5&sort=newest');
 };
 
+
+// --- Profile ---
+// Uses the '/business' endpoint as requested.
 export const getProfile = async (): Promise<BusinessProfile> => {
-    await delay(400);
-    return MOCK_PROFILE;
+    return apiFetch('/business');
 };
 
 export const updateProfile = async (profile: BusinessProfile): Promise<BusinessProfile> => {
-    await delay(600);
-    MOCK_PROFILE = { ...profile };
-    return MOCK_PROFILE;
+    return apiFetch('/business', {
+        method: 'PUT',
+        body: JSON.stringify(profile),
+    });
 };
 
 
-export const getClients = async (): Promise<Client[]> => {
-    await delay(500);
-    return MOCK_CLIENTS;
+// --- Clients ---
+// Uses the '/api/bclients' endpoint as requested.
+export const getClients = async (): Promise<{bclients:Client[]}> => {
+    const client = await apiFetch('/bclients/clients');
+    console.log('Fetched clients:', client);
+    return client;
 };
 
 export const updateClient = async (client: Client): Promise<Client> => {
-    await delay(500);
-    const index = MOCK_CLIENTS.findIndex(c => c.id === client.id);
-    if (index !== -1) {
-        MOCK_CLIENTS[index] = client;
-        return client;
-    }
-    throw new Error('Client not found');
+    return apiFetch(`/bclients/${client.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(client),
+    });
 };
 
 export const addClient = async (clientData: Omit<Client, 'id' | 'avatarUrl' | 'lastContact'>): Promise<Client> => {
-    await delay(500);
-    const newClient: Client = {
-        ...clientData,
-        id: new Date().toISOString(),
-        avatarUrl: `https://picsum.photos/id/${Math.floor(Math.random() * 200) + 200}/200/200`,
-        lastContact: new Date().toISOString().split('T')[0],
-    };
-    MOCK_CLIENTS.unshift(newClient);
-    return newClient;
+    return apiFetch('/api/bclients', {
+        method: 'POST',
+        body: JSON.stringify(clientData),
+    });
 };
 
 
-export const getBookings = async (): Promise<Booking[]> => {
-    await delay(500);
-    return MOCK_BOOKINGS;
+// --- Bookings ---
+// Uses the '/api/bookings' endpoint as requested.
+export const getBookings = async (): Promise<{bookings: Booking[]}> => {
+    return apiFetch('/bookings');
 };
 
-export const getTasks = async (): Promise<Task[]> => {
-    await delay(500);
-    return MOCK_TASKS;
+
+// --- Tasks ---
+// Uses the '/api/btasks' endpoint as requested.
+export const getTasks = async (): Promise<{btasks: Task[]}> => {
+    return apiFetch('/btasks');
 };
 
+export const updateTask = async (task: Task): Promise<Task> => {
+    return apiFetch(`/btasks/${task.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(task),
+    });
+};
+
+
+// --- Templates ---
+// NOTE: Endpoint '/api/btemplates' is an assumption. Change if needed.
 export const getTemplates = async (): Promise<MessageTemplate[]> => {
-    await delay(500);
-    return MOCK_TEMPLATES;
+    return apiFetch('/api/btemplates');
 };
 
 export const addTemplate = async (templateData: Omit<MessageTemplate, 'id'| 'status'>): Promise<MessageTemplate> => {
-    await delay(500);
-    const newTemplate: MessageTemplate = {
-        ...templateData,
-        id: `mt-${new Date().getTime()}`,
-        status: TemplateStatus.PENDING,
-    };
-    MOCK_TEMPLATES.unshift(newTemplate);
-    return newTemplate;
+    return apiFetch('/api/btemplates', {
+        method: 'POST',
+        body: JSON.stringify(templateData),
+    });
 };

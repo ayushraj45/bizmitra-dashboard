@@ -1,7 +1,8 @@
-
 import React from 'react';
 
-export const API_URL = '/api'; // Mock base URL, can be replaced with actual domain
+// IMPORTANT: Change this URL to your actual backend API address.
+// This is the base URL for all API requests.
+export const API_URL = 'http://localhost:3000/api'; // Example: 'https://api.yourbizmitra.com'
 
 export const NAV_ITEMS = [
   { 

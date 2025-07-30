@@ -8,7 +8,7 @@ const ClientForm: React.FC<{ client?: Client | null; onSave: (clientData: any) =
     const [formData, setFormData] = useState({
         name: client?.name || '',
         email: client?.email || '',
-        phone: client?.phone || '',
+        phone: client?.phone_number || '',
         notes: client?.notes || '',
     });
 
@@ -39,14 +39,14 @@ const ClientCard: React.FC<{ client: Client; onEdit: (client: Client) => void }>
     <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4 flex flex-col justify-between">
         <div>
             <div className="flex items-center space-x-4 mb-3">
-                <img src={client.avatarUrl} alt={client.name} className="w-14 h-14 rounded-full" />
-                <div>
+                <img src={client.avatarUrl || 'https://ui-avatars.com/api/?name=No+Image'} alt={client.name} className="w-14 h-14 rounded-full" />
+                <div className="min-w-0">
                     <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{client.name}</h3>
-                    <p className="text-sm text-primary-500">{client.email}</p>
+                    <p className="text-sm text-primary-500 truncate overflow-hidden w-50">{client.email}</p>
                 </div>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mt-2"><strong>Phone:</strong> {client.phone}</p>
-            <p className="text-sm text-slate-600 dark:text-slate-300"><strong>Last Contact:</strong> {client.lastContact}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-2"><strong>Phone:</strong> {client.phone_number}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300"><strong>Last Contact:</strong> {client.last_interaction_at}</p>
             {client.notes && <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 p-2 bg-slate-50 dark:bg-slate-700 rounded-md"><em>{client.notes}</em></p>}
         </div>
         <button onClick={() => onEdit(client)} className="mt-4 text-sm font-medium text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200 self-start">Edit Details</button>
@@ -63,7 +63,8 @@ const Clients: React.FC = () => {
         setIsLoading(true);
         try {
             const data = await getClients();
-            setClients(data);
+            console.log('Fetched clients at the page:', data);
+            setClients(data.bclients); // <-- Use data.bclients instead of data
         } catch (error) {
             console.error("Failed to fetch clients:", error);
         } finally {
@@ -112,9 +113,14 @@ const Clients: React.FC = () => {
                 </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {clients.map(client => (
-                    <ClientCard key={client.id} client={client} onEdit={handleOpenModal} />
-                ))}
+                {Array.isArray(clients) && clients.length > 0 ? (
+                        clients.map(client => (
+                            <ClientCard key={client.id} client={client} onEdit={handleOpenModal} />
+                        ))
+                    ) : (
+                        // Optional: Display a loading or no clients message
+                        <p>Loading clients or no clients available.</p>
+                    )}
             </div>
             <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingClient ? 'Edit Client' : 'Add New Client'}>
                 <ClientForm client={editingClient} onSave={handleSaveClient} onCancel={handleCloseModal} />

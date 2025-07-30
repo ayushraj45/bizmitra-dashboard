@@ -32,6 +32,7 @@ const Dashboard: React.FC = () => {
                     getNewTasks()
                 ]);
                 setSummary(summaryData);
+                console.log('Fetched dashboard summary:', summaryData);
                 setTasks(tasksData);
             } catch (error) {
                 console.error("Failed to fetch dashboard data:", error);
@@ -67,11 +68,11 @@ const Dashboard: React.FC = () => {
                         {tasks.length > 0 ? tasks.map(task => (
                              <li key={task.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50">
                                 <div>
-                                    <p className="font-semibold text-slate-800 dark:text-slate-100">{task.title}</p>
+                                    <p className="font-semibold text-slate-800 dark:text-slate-100">{task.description}</p>
                                     <p className="text-sm text-slate-500 dark:text-slate-400">Created: {new Date(task.createdAt).toLocaleDateString()}</p>
                                 </div>
-                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${urgencyColorMapping[task.urgency]}`}>
-                                    {task.urgency}
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${urgencyColorMapping[task.priority]}`}>
+                                    {task.priority}
                                 </span>
                             </li>
                         )) : (

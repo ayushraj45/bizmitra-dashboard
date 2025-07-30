@@ -55,11 +55,13 @@ const ProtectedRoute: React.FC<{ isAuthenticated: boolean; children: React.React
 };
 
 const App: React.FC = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    // Initialize auth state from localStorage for session persistence
+    const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('authToken'));
 
     const handleLogin = () => setIsAuthenticated(true);
     const handleRegister = () => setIsAuthenticated(true);
     const handleLogout = () => {
+        localStorage.removeItem('authToken');
         setIsAuthenticated(false);
     };
 

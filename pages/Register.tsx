@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { register } from '../services/api';
@@ -10,11 +9,11 @@ interface RegisterProps {
 
 const Register: React.FC<RegisterProps> = ({ onRegisterSuccess }) => {
   const [formData, setFormData] = useState({
-    bizName: '',
+    name: '',
     email: '',
     password: '',
-    phone: '',
-    businessType: '',
+    phone_number: '',
+    business_type: '',
     timezone: Timezone.US,
   });
   const [error, setError] = useState('');
@@ -30,6 +29,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterSuccess }) => {
     setIsLoading(true);
     setError('');
     try {
+      // The API service now handles saving the token
       await register(formData);
       onRegisterSuccess();
       navigate('/');
@@ -47,18 +47,18 @@ const Register: React.FC<RegisterProps> = ({ onRegisterSuccess }) => {
           Create your BizMitra Account
         </h2>
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <input name="bizName" required className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" placeholder="Business Name" onChange={handleChange} />
+          <input name="name" required className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" placeholder="Business Name" onChange={handleChange} />
           <input name="email" type="email" required className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" placeholder="Email Address" onChange={handleChange} />
           <input name="password" type="password" required className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" placeholder="Password" onChange={handleChange} />
-          <input name="phone" type="tel" required className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" placeholder="Phone Number" onChange={handleChange} />
-          <input name="businessType" required className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" placeholder="Type of Business (e.g., Freelancer, Agency)" onChange={handleChange} />
+          <input name="phone_number" type="tel" required className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" placeholder="Phone Number" onChange={handleChange} />
+          <input name="business_type" required className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" placeholder="Type of Business (e.g., Freelancer, Agency)" onChange={handleChange} />
           <select name="timezone" value={formData.timezone} required className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" onChange={handleChange}>
             <option value={Timezone.US}>US (EST)</option>
             <option value={Timezone.INDIA}>India (IST)</option>
             <option value={Timezone.EUROPE}>Europe (GMT)</option>
           </select>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           <div>
             <button

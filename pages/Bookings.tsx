@@ -4,7 +4,7 @@ import { getBookings } from '../services/api';
 import { Booking } from '../types';
 
 const BookingCard: React.FC<{ booking: Booking }> = ({ booking }) => {
-    const isUpcoming = booking.status === 'Upcoming';
+    const isUpcoming = booking.status === 'pending';
     const cardClass = isUpcoming 
         ? 'border-l-4 border-blue-500' 
         : 'border-l-4 border-slate-400 dark:border-slate-600 opacity-70';
@@ -12,10 +12,10 @@ const BookingCard: React.FC<{ booking: Booking }> = ({ booking }) => {
     return (
         <div className={`bg-white dark:bg-slate-800 rounded-lg shadow-md p-4 flex justify-between items-center ${cardClass}`}>
             <div>
-                <p className="font-bold text-lg text-slate-800 dark:text-slate-100">{booking.service}</p>
-                <p className="text-slate-600 dark:text-slate-300">with {booking.clientName}</p>
+                <p className="font-bold text-lg text-slate-800 dark:text-slate-100">{booking.session_type}</p>
+                <p className="text-slate-600 dark:text-slate-300">with {booking.client_name}</p>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    {new Date(booking.dateTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                    {new Date(booking.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                 </p>
             </div>
             <div className={`px-3 py-1 text-sm font-semibold rounded-full ${
@@ -36,11 +36,12 @@ const Bookings: React.FC = () => {
             setIsLoading(true);
             try {
                 const data = await getBookings();
+                console.log('Fetched bookings:', data);
                 // Sort bookings with upcoming first, then by date
-                const sortedData = data.sort((a, b) => {
-                    if (a.status === 'Upcoming' && b.status !== 'Upcoming') return -1;
-                    if (a.status !== 'Upcoming' && b.status === 'Upcoming') return 1;
-                    return new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime();
+                const sortedData = data.bookings.sort((a, b) => {
+                    if (a.status === 'pending' && b.status !== 'pending') return -1;
+                    if (a.status !== 'pending' && b.status === 'pending') return 1;
+                    return new Date(b.start_time).getTime() - new Date(a.start_time).getTime();
                 });
                 setBookings(sortedData);
             } catch (error) {

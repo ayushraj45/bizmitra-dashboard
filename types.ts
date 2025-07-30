@@ -1,9 +1,9 @@
 
 export enum TaskUrgency {
-  LOW = 'Low',
-  MEDIUM = 'Medium',
-  HIGH = 'High',
-  CRITICAL = 'Critical'
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  CRITICAL = 'critical'
 }
 
 export enum TemplateStatus {
@@ -20,28 +20,33 @@ export enum Timezone {
 
 export interface Client {
   id: string;
-  name: string;
-  email: string;
-  phone: string;
-  lastContact: string;
+  name?: string;
+  email?: string;
+  phone_number: string;
+  last_interaction_at?: string;
   notes?: string;
   avatarUrl: string;
+  business_id: string;
+  thread_id?: string; // Optional, if the client has a thread
+  createdAt?: string; // Optional, if the client has a creation date
+  updatedAt?: string; // Optional, if the client has an update date
 }
 
 export interface Task {
   id: string;
-  title: string;
+  description: string;
   createdAt: string;
-  urgency: TaskUrgency;
-  client?: string;
+  priority: TaskUrgency;
+  status: 'in_progress' | 'resolved';
+  client_name?: string;
 }
 
 export interface Booking {
   id: string;
-  clientName: string;
-  service: string;
-  dateTime: string;
-  status: 'Upcoming' | 'Completed' | 'Cancelled';
+  client_name: string;
+  session_type: string;
+  start_time: string;
+  status: 'pending' | 'completed' | 'cancelled' | 'confirmed';
 }
 
 export interface MessageTemplate {
@@ -61,4 +66,14 @@ export interface BusinessProfile {
     operatingHours: string;
     services: string;
     instructions: string;
+}
+
+export interface Business {
+  id: string;
+  name: string;
+  profile: BusinessProfile;
+  clients: Client[];
+  tasks: Task[];
+  bookings: Booking[];
+  messageTemplates: MessageTemplate[];
 }
