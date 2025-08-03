@@ -27,13 +27,13 @@ const Dashboard: React.FC = () => {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                const [summaryData, tasksData] = await Promise.all([
+                const [summaryData] = await Promise.all([
                     getDashboardSummary(),
-                    getNewTasks()
+                   // getNewTasks()
                 ]);
                 setSummary(summaryData);
                 console.log('Fetched dashboard summary:', summaryData);
-                setTasks(tasksData);
+                //setTasks(tasksData);
             } catch (error) {
                 console.error("Failed to fetch dashboard data:", error);
             } finally {

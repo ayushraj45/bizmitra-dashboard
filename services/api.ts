@@ -1,4 +1,4 @@
-import { Client, Task, Booking, MessageTemplate, BusinessProfile } from '../types';
+import { Client, Task, Booking, MessageTemplate, BusinessProfile, BusinessProfileInfo } from '../types';
 import { API_URL } from '../constants';
 
 // --- Helper function for API requests ---
@@ -107,16 +107,27 @@ export const getNewTasks = async () => {
 // --- Profile ---
 // Uses the '/business' endpoint as requested.
 export const getProfile = async (): Promise<BusinessProfile> => {
-    return apiFetch('/business');
+    return apiFetch('/businessProfile');
 };
 
-export const updateProfile = async (profile: BusinessProfile): Promise<BusinessProfile> => {
-    return apiFetch('/business', {
+export const getProfileInfo = async (): Promise<BusinessProfileInfo> => {
+    return apiFetch('/business/info');
+};
+
+export const updateProfile = async (profile: BusinessProfile): Promise< BusinessProfile> => {
+    
+    return apiFetch('/businessProfile/'+profile.id, {
         method: 'PUT',
         body: JSON.stringify(profile),
     });
 };
 
+export const updateProfileInfo = async (profileInfo: BusinessProfileInfo): Promise<{business:BusinessProfileInfo}> => {
+    return apiFetch('/business', {
+        method: 'PUT',
+        body: JSON.stringify(profileInfo),
+    });
+};
 
 // --- Clients ---
 // Uses the '/api/bclients' endpoint as requested.
@@ -165,11 +176,11 @@ export const updateTask = async (task: Task): Promise<Task> => {
 // --- Templates ---
 // NOTE: Endpoint '/api/btemplates' is an assumption. Change if needed.
 export const getTemplates = async (): Promise<MessageTemplate[]> => {
-    return apiFetch('/api/btemplates');
+    return apiFetch('/btemplates');
 };
 
 export const addTemplate = async (templateData: Omit<MessageTemplate, 'id'| 'status'>): Promise<MessageTemplate> => {
-    return apiFetch('/api/btemplates', {
+    return apiFetch('/btemplates', {
         method: 'POST',
         body: JSON.stringify(templateData),
     });
