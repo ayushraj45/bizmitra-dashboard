@@ -1,5 +1,6 @@
-import { Client, Task, Booking, MessageTemplate, BusinessProfile, BusinessProfileInfo } from '../types';
+import { Client, Task, Booking, MessageTemplate, BusinessProfile, BusinessProfileInfo, Business } from '../types';
 import { API_URL } from '../constants';
+import { data } from 'react-router-dom';
 
 // --- Helper function for API requests ---
 // This function will automatically add the auth token to requests
@@ -121,6 +122,20 @@ export const updateProfile = async (profile: BusinessProfile): Promise< Business
         body: JSON.stringify(profile),
     });
 };
+
+export const updateAccessCode = async (code: string): Promise<{message:string}> => {
+    return apiFetch('/business/getToken/', {
+        method: 'PUT',
+        body: JSON.stringify({ waba_access_code: code }),
+    });
+}
+
+export const updateWithMeta = async (data: { waba_id: string; phone_number_id: string; customer_business_id: string;}) : Promise<Business> => {
+    return apiFetch('/business/updateWithMeta', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    });
+}
 
 export const updateProfileInfo = async (profileInfo: BusinessProfileInfo): Promise<{business:BusinessProfileInfo}> => {
     return apiFetch('/business', {

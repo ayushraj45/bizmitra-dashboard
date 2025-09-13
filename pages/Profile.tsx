@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getProfile, updateProfile, getProfileInfo, updateProfileInfo } from '../services/api';
 import { BusinessProfile, Timezone , BusinessProfileInfo, Service} from '../types';
+import WhatsAppLoginButton from '@/components/WhatsAppLoginButton';
 
 const Profile: React.FC = () => {
     const [profile, setProfile] = useState<BusinessProfile | null>(null);
@@ -228,9 +229,10 @@ const Profile: React.FC = () => {
                          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">WhatsApp Connection</h2>
                          <div className="flex items-center justify-between mt-4">
                              <p className="text-slate-600 dark:text-slate-300 text-sm">Connect your WhatsApp Business account to enable the chatbot.</p>
-                             <button className="px-4 py-2 font-semibold bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                             {/* <button className="px-4 py-2 font-semibold bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                 Connect
-                             </button>
+                             </button> */}
+                             <WhatsAppLoginButton />
                          </div>
                      </div>
                       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6">
