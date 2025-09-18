@@ -144,6 +144,18 @@ export const updateProfileInfo = async (profileInfo: BusinessProfileInfo): Promi
     });
 };
 
+// export const getGoogleAuthUrl = async () => {
+     
+//     try {
+//       const response = await fetch('http://localhost:3000/auth/google');
+
+//      return response.json();
+//     } catch (error) {
+//       console.error('Error fetching Google auth URL:', error);
+//       throw new Error('Failed to fetch Google auth URL');
+//     }
+// }
+
 // --- Clients ---
 // Uses the '/api/bclients' endpoint as requested.
 export const getClients = async (): Promise<{bclients:Client[]}> => {

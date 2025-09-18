@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getProfile, updateProfile, getProfileInfo, updateProfileInfo } from '../services/api';
+import { getProfile, updateProfile, getProfileInfo,  } from '../services/api';
 import { BusinessProfile, Timezone , BusinessProfileInfo, Service} from '../types';
 import WhatsAppLoginButton from '@/components/WhatsAppLoginButton';
+import GoogleConnect from '@/components/GoogleConnect';
 
 const Profile: React.FC = () => {
     const [profile, setProfile] = useState<BusinessProfile | null>(null);
@@ -9,8 +10,10 @@ const Profile: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
+    const [businessID, setBusinessID] = useState<string | null>(null);
 
     useEffect(() => {
+        console.log("Fetching profile data...", profile);
         const fetchProfileData = async () => {
             setIsLoading(true);
             setError('');
@@ -25,6 +28,7 @@ const Profile: React.FC = () => {
 
                 if (profileData) {
                     console.log('Fetched profile data:', profileData);
+                    setBusinessID(profileData.business_id);
                     let servicesArray: Service[] = [];
                     const rawServices = profileData.services as any;
                     if (typeof rawServices === 'string' && rawServices.trim().startsWith('[')) {
@@ -239,9 +243,14 @@ const Profile: React.FC = () => {
                          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Google Calendar Sync</h2>
                          <div className="flex items-center justify-between mt-4">
                              <p className="text-slate-600 dark:text-slate-300 text-sm">Connect your Google Calendar for automated booking management.</p>
-                             <button className="px-4 py-2 font-semibold bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                             {/* <button onClick={getGoogleAuthUrl} className="px-4 py-2 font-semibold bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 Connect
-                             </button>
+                             </button> */}
+                            <GoogleConnect
+                            onSuccess={() => console.log('Connected!')} 
+                            onError={(error) => console.error(error)} 
+                            businessID={businessID as string}
+                            />
                          </div>
                      </div>
                 </div>

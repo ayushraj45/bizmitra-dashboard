@@ -82,6 +82,7 @@ export interface BusinessProfile {
     id:string;
     tone: string;
     about: string;
+    business_id: string;
     business_type: string;
     timezone: Timezone;
     hours_of_operation: string;
