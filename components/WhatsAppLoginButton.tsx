@@ -108,7 +108,7 @@ const WhatsAppLoginButton: React.FC = () => {
     window.fbAsyncInit = function() {
       console.log('Initializing Facebook SDK...');
       window.FB.init({
-        appId: process.env.VITE_META_APP_ID,
+        appId: import.meta.env.VITE_META_APP_ID,
         cookie: true, // ⭐ CRITICAL: This was missing and is required for sessionInfoVersion
         autoLogAppEvents: true,
         xfbml: true,
@@ -144,7 +144,7 @@ const WhatsAppLoginButton: React.FC = () => {
     }
 
     console.log('Calling FB.login with config:', {
-      config_id: '740165458778399',
+      config_id: import.meta.env.VITE_ES_CONFIG_ID,
       response_type: 'code',
       override_default_response_type: true,
       extras: {
@@ -155,7 +155,7 @@ const WhatsAppLoginButton: React.FC = () => {
     });
 
     window.FB.login((window as any).fbLoginCallback, {
-      config_id: '740165458778399', // Make sure this is your actual config ID
+      config_id: import.meta.env.VITE_ES_CONFIG_ID, // Make sure this is your actual config ID
       response_type: 'code',
       override_default_response_type: true,
       extras: {
@@ -171,7 +171,7 @@ const WhatsAppLoginButton: React.FC = () => {
       <button 
         onClick={launchWhatsAppSignup} 
         style={{ 
-          backgroundColor: '#1877f2', 
+          backgroundColor: '#25D366', 
           border: 0, 
           borderRadius: '4px', 
           color: '#fff', 
@@ -179,16 +179,16 @@ const WhatsAppLoginButton: React.FC = () => {
           fontFamily: 'Helvetica, Arial, sans-serif', 
           fontSize: '16px', 
           fontWeight: 'bold', 
-          height: '40px', 
+          height: '60px', 
           padding: '0 24px' 
         }}
       >
-        Login with Facebook
+       Connect WhatsApp
       </button>
       
       {/* Debug info */}
       <div style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
-        <p>Check browser console for detailed logs</p>
+        {/* <p>Check browser console for detailed logs</p> */}
         {/* <p>App ID: {process.env.VITE_META_APP_ID ? '✅ Set' : '❌ Missing'}</p> */}
       </div>
     </div>

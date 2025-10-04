@@ -8,8 +8,8 @@ interface GoogleConnectProps {
 // Handles Google OAuth flow and sends auth code to backend
 const GoogleConnect: React.FC<GoogleConnectProps> = ({ onSuccess, onError, businessID }) => {
   const handleConnect = async () => {
-    const clientId = '150107192589-oe098fmfm2t7esb60afn6rnpq5ttrntv.apps.googleusercontent.com';
-    const redirectUri = 'http://localhost:3000/auth/google/callback'
+    const clientId = import.meta.env.VITE_REACT_APP_GOOGLE_CLIENT_ID;
+    const redirectUri = import.meta.env.VITE_REACT_APP_REDIRECT_URI;
 
     if (!clientId || !redirectUri) {
       onError?.('Google client ID or redirect URI is not set.');
@@ -96,8 +96,20 @@ const GoogleConnect: React.FC<GoogleConnectProps> = ({ onSuccess, onError, busin
   };
 
   return (
-    <button onClick={handleConnect} className="google-connect-btn">
-      Connect to Google
+    <button onClick={handleConnect} className="google-connect-btn"
+    style={{ 
+          backgroundColor: '#EA4335', 
+          border: 0, 
+          borderRadius: '4px', 
+          color: '#fff', 
+          cursor: 'pointer', 
+          fontFamily: 'Helvetica, Arial, sans-serif', 
+          fontSize: '16px', 
+          fontWeight: 'bold', 
+          height: '60px', 
+          padding: '0 24px' 
+        }}>
+      Connect Google
     </button>
   );
 };

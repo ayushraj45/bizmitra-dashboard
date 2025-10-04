@@ -59,4 +59,13 @@ export const NAV_ITEMS = [
       </svg>
     )
   },
+    {
+    name: 'Help',
+    path: '/help',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4 0 1.152-.468 2.19-1.224 2.942-.756.752-1.744 1.332-2.548 1.768a4.994 4.994 0 00-.7 1.29V18M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
+      </svg>
+    )
+  },
 ];

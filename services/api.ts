@@ -28,6 +28,15 @@ const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     });
 
     if (!response.ok) {
+
+        if (response.status === 401) {
+            localStorage.removeItem('authToken');
+            window.location.reload();
+            // We throw an error to prevent the rest of the code in the calling function from executing.
+            throw new Error("Session expired. Please log in again.");
+        }
+
+
         let errorData;
         try {
             errorData = await response.json();
