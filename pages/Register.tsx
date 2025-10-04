@@ -53,9 +53,9 @@ const Register: React.FC<RegisterProps> = ({ onRegisterSuccess }) => {
           <input name="phone_number" type="tel" required className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" placeholder="Phone Number" onChange={handleChange} />
           <input name="business_type" required className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" placeholder="Type of Business (e.g., Freelancer, Agency)" onChange={handleChange} />
           <select name="timezone" value={formData.timezone} required className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" onChange={handleChange}>
-            <option value={Timezone.US}>US (EST)</option>
+            {/* <option value={Timezone.US}>US (EST)</option> */}
             <option value={Timezone.INDIA}>India (IST)</option>
-            <option value={Timezone.EUROPE}>Europe (GMT)</option>
+            {/* <option value={Timezone.EUROPE}>Europe (GMT)</option> */}
           </select>
 
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}

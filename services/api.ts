@@ -1,5 +1,6 @@
-import { Client, Task, Booking, MessageTemplate, BusinessProfile } from '../types';
+import { Client, Task, Booking, MessageTemplate, BusinessProfile, BusinessProfileInfo, Business } from '../types';
 import { API_URL } from '../constants';
+import { data } from 'react-router-dom';
 
 // --- Helper function for API requests ---
 // This function will automatically add the auth token to requests
@@ -27,6 +28,15 @@ const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     });
 
     if (!response.ok) {
+
+        if (response.status === 401) {
+            localStorage.removeItem('authToken');
+            window.location.reload();
+            // We throw an error to prevent the rest of the code in the calling function from executing.
+            throw new Error("Session expired. Please log in again.");
+        }
+
+
         let errorData;
         try {
             errorData = await response.json();
@@ -107,16 +117,53 @@ export const getNewTasks = async () => {
 // --- Profile ---
 // Uses the '/business' endpoint as requested.
 export const getProfile = async (): Promise<BusinessProfile> => {
-    return apiFetch('/business');
+    return apiFetch('/businessProfile');
 };
 
-export const updateProfile = async (profile: BusinessProfile): Promise<BusinessProfile> => {
-    return apiFetch('/business', {
+export const getProfileInfo = async (): Promise<BusinessProfileInfo> => {
+    return apiFetch('/business/info');
+};
+
+export const updateProfile = async (profile: BusinessProfile): Promise< BusinessProfile> => {
+    
+    return apiFetch('/businessProfile/'+profile.id, {
         method: 'PUT',
         body: JSON.stringify(profile),
     });
 };
 
+export const updateAccessCode = async (code: string): Promise<{message:string}> => {
+    return apiFetch('/business/getToken/', {
+        method: 'PUT',
+        body: JSON.stringify({ waba_access_code: code }),
+    });
+}
+
+export const updateWithMeta = async (data: { waba_id: string; phone_number_id: string; customer_business_id: string;}) : Promise<Business> => {
+    return apiFetch('/business/updateWithMeta', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    });
+}
+
+export const updateProfileInfo = async (profileInfo: BusinessProfileInfo): Promise<{business:BusinessProfileInfo}> => {
+    return apiFetch('/business', {
+        method: 'PUT',
+        body: JSON.stringify(profileInfo),
+    });
+};
+
+// export const getGoogleAuthUrl = async () => {
+     
+//     try {
+//       const response = await fetch('http://localhost:3000/auth/google');
+
+//      return response.json();
+//     } catch (error) {
+//       console.error('Error fetching Google auth URL:', error);
+//       throw new Error('Failed to fetch Google auth URL');
+//     }
+// }
 
 // --- Clients ---
 // Uses the '/api/bclients' endpoint as requested.
@@ -165,11 +212,11 @@ export const updateTask = async (task: Task): Promise<Task> => {
 // --- Templates ---
 // NOTE: Endpoint '/api/btemplates' is an assumption. Change if needed.
 export const getTemplates = async (): Promise<MessageTemplate[]> => {
-    return apiFetch('/api/btemplates');
+    return apiFetch('/btemplates');
 };
 
 export const addTemplate = async (templateData: Omit<MessageTemplate, 'id'| 'status'>): Promise<MessageTemplate> => {
-    return apiFetch('/api/btemplates', {
+    return apiFetch('/btemplates', {
         method: 'POST',
         body: JSON.stringify(templateData),
     });

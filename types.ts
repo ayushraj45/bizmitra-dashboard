@@ -48,26 +48,54 @@ export interface Booking {
   start_time: string;
   status: 'pending' | 'completed' | 'cancelled' | 'confirmed';
 }
+export interface TemplateComponent {
+    type: 'BODY';
+    text: string;
+    example?: {
+        body_text: string[][];
+    };
+}
+export enum TemplateCategory {
+    UTILITY = 'UTILITY',
+    TRANSACTIONAL = 'TRANSACTIONAL',
+    OTP = 'OTP',
+    MARKETING = 'MARKETING'
+}
 
 export interface MessageTemplate {
     id: string;
     name: string;
     language: string;
     status: TemplateStatus;
-    content: string;
+    category: TemplateCategory;
+    components: TemplateComponent[];
+}
+
+
+export interface Service {
+    name: string;
+    price: number | string;
+    time: string;
 }
 
 export interface BusinessProfile {
-    businessName: string;
-    email: string;
-    phone: string;
-    businessType: string;
+    id:string;
+    tone: string;
+    about: string;
+    business_id: string;
+    business_type: string;
     timezone: Timezone;
-    operatingHours: string;
-    services: string;
+    hours_of_operation: string;
+    services: Service[];
     instructions: string;
 }
 
+export interface BusinessProfileInfo {
+    id: string;
+    name: string;
+    email: string;
+    phone_number: string;
+}
 export interface Business {
   id: string;
   name: string;

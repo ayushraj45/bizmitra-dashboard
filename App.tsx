@@ -10,6 +10,7 @@ import Clients from './pages/Clients';
 import Bookings from './pages/Bookings';
 import Templates from './pages/Templates';
 import Tasks from './pages/Tasks';
+import Help from './pages/Help';
 import { NAV_ITEMS } from './constants';
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
@@ -84,6 +85,7 @@ const App: React.FC = () => {
                     <Route path="/bookings" element={<Bookings />} />
                     <Route path="/templates" element={<Templates />} />
                     <Route path="/tasks" element={<Tasks />} />
+                    <Route path="/help" element={<Help />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
             </Routes>

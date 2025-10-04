@@ -67,7 +67,7 @@ const Header: React.FC<HeaderProps> = ({ title, onMenuClick }) => {
                 {isDarkMode ? <SunIcon/> : <MoonIcon/>}
              </button>
             <div className="relative">
-                <img className="h-8 w-8 rounded-full" src="https://picsum.photos/id/1027/200/200" alt="User" />
+                <img className="h-8 w-8 rounded-full" src="BizMitra.png" alt="User" />
             </div>
           </div>
         </div>
