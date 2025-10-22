@@ -133,13 +133,13 @@ export const updateProfile = async (profile: BusinessProfile): Promise< Business
 };
 
 export const updateAccessCode = async (code: string): Promise<{message:string}> => {
-    return apiFetch('/business/getToken/', {
+    return await apiFetch('/business/getToken/', {
         method: 'PUT',
         body: JSON.stringify({ waba_access_code: code }),
     });
 }
 
-export const updateWithMeta = async (data: { waba_id: string; phone_number_id: string; customer_business_id: string;}) : Promise<Business> => {
+export const updateWithMeta = async (data: { waba_id: string; phone_number_id: string; customer_business_id: string; existence: boolean}) : Promise<Business> => {
     return apiFetch('/business/updateWithMeta', {
         method: 'PUT',
         body: JSON.stringify(data),
