@@ -1,4 +1,4 @@
-import { Client, Task, Booking, MessageTemplate, BusinessProfile, BusinessProfileInfo, Business } from '../types';
+import { Client, Task, Booking, MessageTemplate, BusinessProfile, BusinessProfileInfo, Business , Chat, ChatMessage} from '../types';
 import { API_URL } from '../constants';
 import { data } from 'react-router-dom';
 
@@ -220,4 +220,13 @@ export const addTemplate = async (templateData: Omit<MessageTemplate, 'id'| 'sta
         method: 'POST',
         body: JSON.stringify(templateData),
     });
+};
+
+export const getChats = async (): Promise<Chat[]> => {
+    return apiFetch('/chat');
+};
+
+// NOTE: Endpoint '/api/chats/${chatId}/messages' is an assumption. Change if needed.
+export const getChatMessages = async (chatId: string): Promise<ChatMessage[]> => {
+    return apiFetch(`/chat/${chatId}/messages`);
 };

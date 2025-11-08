@@ -105,3 +105,25 @@ export interface Business {
   bookings: Booking[];
   messageTemplates: MessageTemplate[];
 }
+
+export interface Chat {
+  id: string;
+  status: string;
+  last_message_timestamp: string;
+  metadata: {
+    source?: string;
+  };
+  created_at: string;
+  BClient: {
+    name: string;
+    email: string;
+  }
+}
+
+export interface ChatMessage {
+  id: string;
+  chat_id: string;
+  sender_type: 'client' | 'system';
+  content: string;
+  timestamp: string;
+}
