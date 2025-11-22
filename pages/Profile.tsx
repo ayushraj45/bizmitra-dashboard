@@ -1,16 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { getProfile, updateProfile, getProfileInfo,  } from '../services/api';
-import { BusinessProfile, Timezone , BusinessProfileInfo, Service} from '../types';
+import { getProfile, updateProfile, getProfileInfo, getApiKey, getConnectors, fetchWebsiteContent } from '../services/api';
+import { BusinessProfile, Timezone , BusinessProfileInfo, Service, Connectors} from '../types';
 import WhatsAppLoginButton from '@/components/WhatsAppLoginButton';
 import GoogleConnect from '@/components/GoogleConnect';
+
+const ProfileCard: React.FC<{ title: string; children: React.ReactNode; footer?: React.ReactNode; }> = ({ title, children, footer }) => (
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{title}</h2>
+        </div>
+        <div className="p-6 space-y-6">
+            {children}
+        </div>
+        {footer && (
+            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 text-right rounded-b-xl">
+                {footer}
+            </div>
+        )}
+    </div>
+);
+
 
 const Profile: React.FC = () => {
     const [profile, setProfile] = useState<BusinessProfile | null>(null);
     const [profileInfo, setProfileInfo] = useState<BusinessProfileInfo | null>(null);  
+    const [connectors, setConnectors] = useState<Connectors>({ WAConnection: false, GoogleConnection: false });
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
     const [businessID, setBusinessID] = useState<string | null>(null);
+
+    const [apiKey, setApiKey] = useState<string | null>(null);
+    const [isApiKeyVisible, setIsApiKeyVisible] = useState(false);
+    const [brandColor, setBrandColor] = useState('#3b82f6'); // Default to primary color
+    const [isGeneratingKey, setIsGeneratingKey] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
+
+    const [websiteUrl, setWebsiteUrl] = useState('');
+    const [isFetchingWebsite, setIsFetchingWebsite] = useState(false);
 
     useEffect(() => {
         console.log("Fetching profile data...", profile);
@@ -18,13 +45,16 @@ const Profile: React.FC = () => {
             setIsLoading(true);
             setError('');
             try {
-                const [profileData, profileInfoData] = await Promise.all([
+                const [profileData, profileInfoData, connectorsData] = await Promise.all([
                     getProfile(),
-                    getProfileInfo()
-                    
+                    getProfileInfo(),
+                    getConnectors()
                 ]);
                 
                 setProfileInfo(profileInfoData);
+                setConnectors(connectorsData);
+                console.log('connectorsData: ', connectorsData) 
+                console.log('connectors: ', connectors)
 
                 if (profileData) {
                     console.log('Fetched profile data:', profileData);
@@ -91,6 +121,25 @@ const Profile: React.FC = () => {
         }
     };
 
+    const handleFetchWebsite = async () => {
+        if (!websiteUrl) return;
+        setIsFetchingWebsite(true);
+        try {
+            const { content } = await fetchWebsiteContent(websiteUrl);
+            if (profile) {
+                // Append existing text if any, separated by double newline
+                const currentAbout = profile.about || '';
+                const separator = currentAbout ? '\n\n' : '';
+                setProfile({ ...profile, about: currentAbout + separator + content });
+            }
+        } catch (err) {
+            console.error("Failed to fetch website content:", err);
+            alert("Failed to fetch website content.");
+        } finally {
+            setIsFetchingWebsite(false);
+        }
+    };    
+
     const handleSaveChanges = async () => {
         if (!profile) return;
 
@@ -131,6 +180,45 @@ const Profile: React.FC = () => {
     
     if (!profile || !profileInfo) {
          return <div className="p-8 text-center text-slate-500 dark:text-slate-400">No profile data found. You may need to complete initial setup.</div>;
+    }
+
+     const handleGenerateKey = async () => {
+        console.log("Generating API key...");
+        setIsGeneratingKey(true);
+        try {
+            const { apiKey: newApiKey } = await getApiKey();
+            console.log("Generated API key:", newApiKey);
+            setApiKey(newApiKey);
+        } catch (error) {
+            console.error("Failed to generate API key:", error);
+        } finally {
+            setIsGeneratingKey(false);
+        }
+    };
+
+    const codeSnippet = `
+        <script>
+        window.bizmitraConfig = {
+            apiKey: '${apiKey || 'YOUR_API_KEY'}',
+            businessName: '${profileInfo?.name || 'Your business name'}',
+            headerColor: '${brandColor}'
+        };
+        </script>
+        <script src="https://widget.bizmitra-ai.com/bizmitra-widget2.js"></script>
+        `.trim();
+
+    const handleCopyCode = () => {
+        navigator.clipboard.writeText(codeSnippet);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
+    };
+    
+    if (isLoading) {
+        return <div className="p-8 text-center text-slate-500 dark:text-slate-400">Loading profile...</div>;
+    }
+
+    if (!profile || !profileInfo) {
+        return <div className="p-8 text-center text-red-500">Could not load profile data.</div>;
     }
 
     return (
@@ -192,6 +280,29 @@ const Profile: React.FC = () => {
                         </div>
 
                          <div>
+                            <label htmlFor="websiteFetch" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Fetch From Website</label>
+                            <div className="flex space-x-2">
+                                <input 
+                                    type="url" 
+                                    id="websiteFetch" 
+                                    placeholder="https://yourbusiness.com" 
+                                    value={websiteUrl}
+                                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                                    className="flex-grow rounded-md border-slate-300 dark:border-slate-600 shadow-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-primary-500 focus:border-primary-500 px-3 py-2 border"
+                                />
+                                <button 
+                                    type="button" 
+                                    onClick={handleFetchWebsite}
+                                    disabled={isFetchingWebsite || !websiteUrl}
+                                    className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:bg-primary-300 dark:disabled:bg-primary-800"
+                                >
+                                    {isFetchingWebsite ? 'Fetching...' : 'Fetch and Append'}
+                                </button>
+                            </div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">Enter your website URL to automatically extract business details and append them below.</p>
+                        </div>
+
+                         <div>
                             <label htmlFor="about" className="block text-sm font-medium text-slate-700 dark:text-slate-300">About Your Business</label>
                             <textarea name="about" id="about" rows={3} value={profile.about} onChange={handleProfileChange} className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-primary-500 focus:border-primary-500" placeholder="Give a brief description of your business for the chatbot."></textarea>
                         </div>
@@ -230,30 +341,96 @@ const Profile: React.FC = () => {
                 {/* Integrations */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6">
-                         <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">WhatsApp Connection</h2>
+                         <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">                            
+                            {connectors.WAConnection ? 'WhatsApp Connection - Connected' : 'WhatsApp Connection'}
+                         </h2>
                          <div className="flex items-center justify-between mt-4">
                              <p className="text-slate-600 dark:text-slate-300 text-sm">Connect your WhatsApp Business account to enable the chatbot.</p>
                              {/* <button className="px-4 py-2 font-semibold bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                 Connect
                              </button> */}
                              <WhatsAppLoginButton />
+                             {/* {!connectors.WAConnection && <WhatsAppLoginButton />}
+                             {connectors.WAConnection && (
+                                 <span className="px-4 py-2 font-semibold text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-300 rounded-lg border border-green-200 dark:border-green-800">
+                                     Active
+                                 </span>
+                             )} */}
                          </div>
                      </div>
                       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6">
-                         <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Google Calendar Sync</h2>
+                         <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                                {connectors.GoogleConnection ? 'Google Calendar Sync - Connected' : 'Google Calendar Sync'}
+                         </h2>                            
                          <div className="flex items-center justify-between mt-4">
                              <p className="text-slate-600 dark:text-slate-300 text-sm">Connect your Google Calendar for automated booking management.</p>
                              {/* <button onClick={getGoogleAuthUrl} className="px-4 py-2 font-semibold bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 Connect
                              </button> */}
+                             {/* {!connectors.GoogleConnection && ( */}
                             <GoogleConnect
-                            onSuccess={() => console.log('Connected!')} 
+                            onSuccess={() => setConnectors({ ...connectors, GoogleConnection: true })} 
                             onError={(error) => console.error(error)} 
                             businessID={businessID as string}
                             />
+                            {/* )} */}
+                            {/* {connectors.GoogleConnection && (
+                                <span className="px-4 py-2 font-semibold text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 rounded-lg border border-blue-200 dark:border-blue-800">
+                                    Active
+                                </span>
+                            )} */}
                          </div>
                      </div>
                 </div>
+
+                                {/* Website Integration */}
+                <ProfileCard title="Add to Website">
+                    {!apiKey ? (
+                         <div className="flex items-center justify-between">
+                            <p className="text-slate-600 dark:text-slate-300">Generate an API Key to connect your website widget.</p>
+                            <button onClick={handleGenerateKey} disabled={isGeneratingKey} className="px-4 py-2 font-semibold bg-slate-500 text-white rounded-lg shadow-md hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 disabled:opacity-50">
+                                {isGeneratingKey ? 'Generating...' : 'Generate API Key'}
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            <div>
+                                <label htmlFor="apiKey" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Your API Key</label>
+                                <div className="relative mt-1">
+                                    <input
+                                        type={isApiKeyVisible ? 'text' : 'password'}
+                                        id="apiKey"
+                                        readOnly
+                                        value={apiKey}
+                                        className="block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 cursor-not-allowed pr-10"
+                                    />
+                                    <button onClick={() => setIsApiKeyVisible(!isApiKeyVisible)} className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+                                        {isApiKeyVisible ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                        ) : (
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .946-3.118 3.526-5.449 6.837-6.108M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.75 4.75l14.5 14.5" /></svg>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label htmlFor="brandColor" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Widget Header Color</label>
+                                <input type="color" id="brandColor" value={brandColor} onChange={(e) => setBrandColor(e.target.value)} className="mt-1 h-10 w-full block rounded-md border-slate-300 dark:border-slate-600 cursor-pointer" />
+                            </div>
+                            <div>
+                                <p className="block text-sm text-slate-700 dark:text-slate-300">To integrate the widget into your website, add the following code snippet just before the closing &lt;/body&gt; tag.</p>
+                                <div className="relative mt-2">
+                                    <button onClick={handleCopyCode} className="absolute top-2 right-2 px-3 py-1 text-xs font-medium rounded-md bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 dark:hover:bg-slate-500 text-slate-700 dark:text-slate-200 z-10">
+                                        {isCopied ? 'Copied!' : 'Copy code'}
+                                    </button>
+                                    <pre className="bg-slate-100 dark:bg-slate-900 rounded-md p-4 pt-10 overflow-x-auto">
+                                        <code className="text-sm text-slate-800 dark:text-slate-200">{codeSnippet}</code>
+                                    </pre>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </ProfileCard>
 
                 {/* Save Button */}
                 <div className="flex justify-end pt-2 pb-8">

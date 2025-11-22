@@ -127,3 +127,8 @@ export interface ChatMessage {
   content: string;
   timestamp: string;
 }
+
+export interface Connectors {
+    WAConnection: boolean;
+    GoogleConnection: boolean;
+}

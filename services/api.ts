@@ -1,4 +1,4 @@
-import { Client, Task, Booking, MessageTemplate, BusinessProfile, BusinessProfileInfo, Business , Chat, ChatMessage} from '../types';
+import { Client, Task, Booking, MessageTemplate, BusinessProfile, BusinessProfileInfo, Business , Chat, Connectors, ChatMessage} from '../types';
 import { API_URL } from '../constants';
 import { data } from 'react-router-dom';
 
@@ -29,7 +29,7 @@ const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
 
     if (!response.ok) {
 
-        if (response.status === 401) {
+        if (response.status === 401 ||  response.status === 403) {
             localStorage.removeItem('authToken');
             window.location.reload();
             // We throw an error to prevent the rest of the code in the calling function from executing.
@@ -153,6 +153,10 @@ export const updateProfileInfo = async (profileInfo: BusinessProfileInfo): Promi
     });
 };
 
+export const getApiKey = async (): Promise<{apiKey: string}> => {
+    return apiFetch('/business/apiKey');
+};
+
 // export const getGoogleAuthUrl = async () => {
      
 //     try {
@@ -229,4 +233,13 @@ export const getChats = async (): Promise<Chat[]> => {
 // NOTE: Endpoint '/api/chats/${chatId}/messages' is an assumption. Change if needed.
 export const getChatMessages = async (chatId: string): Promise<ChatMessage[]> => {
     return apiFetch(`/chat/${chatId}/messages`);
+};
+
+export const getConnectors = async (): Promise<Connectors> => {
+     return apiFetch('/business/connectionStatus');
+};
+
+// Dummy function for fetching website content - Replace with actual API endpoint later
+export const fetchWebsiteContent = async (url: string): Promise<{ content: string }> => {
+    return apiFetch('/businessProfile/addFromWebsite', { method: 'POST', body: JSON.stringify({ url }) });
 };
