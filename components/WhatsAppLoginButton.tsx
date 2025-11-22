@@ -13,14 +13,20 @@ const WhatsAppLoginButton: React.FC = () => {
 
   useEffect(() => {
     // This function handles the response from the FB.login dialog.
-    const fbLoginCallback = (response: any) => {
+    const fbLoginCallback =  (response: any) => {
       console.log('FB.login callback response:', response);
       if (response.authResponse) {
         const code = response.authResponse.code;
         console.log('Authorization Code:', code);
-        const biztoken = updateAccessCode(code);
-        console.log('Sent code to backend, response:', biztoken);
-        // TODO: Send this code to your backend server to exchange for an access token.
+        const sendCodeToBackend = async (authCode: string) => {
+          try {
+            const biztoken = await updateAccessCode(authCode);
+            console.log('Sent code to backend, response:', biztoken);
+          } catch (error) {
+            console.error('Error sending access code to backend:', error);
+          }
+        };
+        sendCodeToBackend(code);
       } else {
         console.log('User cancelled login or did not fully authorize.', response);
       }
@@ -54,17 +60,35 @@ const WhatsAppLoginButton: React.FC = () => {
               console.log('✅ Flow completed successfully:', {
                 phone_number_id: data.data?.phone_number_id,
                 waba_id: data.data?.waba_id,
-                business_id: data.data?.business_id
+                business_id: data.data?.business_id,
+                existence: false
               });
 
               const updatedBiz = await updateWithMeta({
                 waba_id: data.data?.waba_id,
                 phone_number_id: data.data?.phone_number_id, 
-                customer_business_id: data.data?.business_id});
+                customer_business_id: data.data?.business_id,
+                existence: false});
               console.log('Updated business with WhatsApp metadata: ', updatedBiz);
               // TODO: Handle successful completion - send data to your backend
               break;
-              
+
+            case 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING' :      
+               console.log('✅ Existing whatsapp Flow completed successfully:', {
+                phone_number_id: data.data?.phone_number_id,
+                waba_id: data.data?.waba_id,
+                business_id: data.data?.business_id,
+                existence: true
+              });
+
+              const existingUpdatedBiz = await updateWithMeta({
+                waba_id: data.data?.waba_id,
+                phone_number_id: data.data?.phone_number_id || '', 
+                customer_business_id: data.data?.business_id,
+                existence: true});
+              console.log('Updated business with WhatsApp metadata: ', existingUpdatedBiz);
+              break;
+
             case 'CANCEL':
               console.log('❌ Flow was cancelled:', data.data);
               // TODO: Handle cancellation
@@ -149,7 +173,7 @@ const WhatsAppLoginButton: React.FC = () => {
       override_default_response_type: true,
       extras: {
         setup: {},
-        feature_type: '',
+        featureType: 'whatsapp_business_app_onboarding',
         sessionInfoVersion: '3', // ⭐ This should trigger JSON responses
       }
     });
@@ -160,7 +184,7 @@ const WhatsAppLoginButton: React.FC = () => {
       override_default_response_type: true,
       extras: {
         setup: {}, // Required empty object
-        feature_type: '', // Leave empty for default flow
+        featureType: 'whatsapp_business_app_onboarding', 
         sessionInfoVersion: '3', // ⭐ This should enable JSON postMessage events
       }
     });

@@ -1,4 +1,4 @@
-import { Client, Task, Booking, MessageTemplate, BusinessProfile, BusinessProfileInfo, Business } from '../types';
+import { Client, Task, Booking, MessageTemplate, BusinessProfile, BusinessProfileInfo, Business , Chat, Connectors, ChatMessage} from '../types';
 import { API_URL } from '../constants';
 import { data } from 'react-router-dom';
 
@@ -29,7 +29,7 @@ const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
 
     if (!response.ok) {
 
-        if (response.status === 401) {
+        if (response.status === 401 ||  response.status === 403) {
             localStorage.removeItem('authToken');
             window.location.reload();
             // We throw an error to prevent the rest of the code in the calling function from executing.
@@ -133,13 +133,13 @@ export const updateProfile = async (profile: BusinessProfile): Promise< Business
 };
 
 export const updateAccessCode = async (code: string): Promise<{message:string}> => {
-    return apiFetch('/business/getToken/', {
+    return await apiFetch('/business/getToken/', {
         method: 'PUT',
         body: JSON.stringify({ waba_access_code: code }),
     });
 }
 
-export const updateWithMeta = async (data: { waba_id: string; phone_number_id: string; customer_business_id: string;}) : Promise<Business> => {
+export const updateWithMeta = async (data: { waba_id: string; phone_number_id: string; customer_business_id: string; existence: boolean}) : Promise<Business> => {
     return apiFetch('/business/updateWithMeta', {
         method: 'PUT',
         body: JSON.stringify(data),
@@ -151,6 +151,10 @@ export const updateProfileInfo = async (profileInfo: BusinessProfileInfo): Promi
         method: 'PUT',
         body: JSON.stringify(profileInfo),
     });
+};
+
+export const getApiKey = async (): Promise<{apiKey: string}> => {
+    return apiFetch('/business/apiKey');
 };
 
 // export const getGoogleAuthUrl = async () => {
@@ -220,4 +224,22 @@ export const addTemplate = async (templateData: Omit<MessageTemplate, 'id'| 'sta
         method: 'POST',
         body: JSON.stringify(templateData),
     });
+};
+
+export const getChats = async (): Promise<Chat[]> => {
+    return apiFetch('/chat');
+};
+
+// NOTE: Endpoint '/api/chats/${chatId}/messages' is an assumption. Change if needed.
+export const getChatMessages = async (chatId: string): Promise<ChatMessage[]> => {
+    return apiFetch(`/chat/${chatId}/messages`);
+};
+
+export const getConnectors = async (): Promise<Connectors> => {
+     return apiFetch('/business/connectionStatus');
+};
+
+// Dummy function for fetching website content - Replace with actual API endpoint later
+export const fetchWebsiteContent = async (url: string): Promise<{ content: string }> => {
+    return apiFetch('/businessProfile/addFromWebsite', { method: 'POST', body: JSON.stringify({ url }) });
 };
