@@ -121,24 +121,47 @@ const Profile: React.FC = () => {
         }
     };
 
-    const handleFetchWebsite = async () => {
-        if (!websiteUrl) return;
-        setIsFetchingWebsite(true);
-        try {
-            const { content } = await fetchWebsiteContent(websiteUrl);
-            if (profile) {
-                // Append existing text if any, separated by double newline
-                const currentAbout = profile.about || '';
-                const separator = currentAbout ? '\n\n' : '';
-                setProfile({ ...profile, about: currentAbout + separator + content });
-            }
-        } catch (err) {
-            console.error("Failed to fetch website content:", err);
-            alert("Failed to fetch website content.");
-        } finally {
-            setIsFetchingWebsite(false);
+const handleFetchWebsite = async () => {
+    if (!websiteUrl) return;
+    
+    setIsFetchingWebsite(true);
+
+    // --- START: URL Normalization Logic ---
+    let formattedUrl = websiteUrl.trim();
+
+    // 1. Add https:// if no protocol is present
+    if (!/^https?:\/\//i.test(formattedUrl)) {
+        formattedUrl = 'https://' + formattedUrl;
+    }
+
+    // 2. Use the URL constructor to validate and normalize (adds trailing '/' if needed)
+    try {
+        const urlObj = new URL(formattedUrl);
+        formattedUrl = urlObj.href; 
+    } catch (e) {
+        console.error("Invalid URL format", e);
+        alert("Please enter a valid URL.");
+        setIsFetchingWebsite(false);
+        return;
+    }
+    // --- END: URL Normalization Logic ---
+
+    try {
+        // Use formattedUrl here instead of websiteUrl
+        const { content } = await fetchWebsiteContent(formattedUrl);
+        
+        if (profile) {
+            const currentAbout = profile.about || '';
+            const separator = currentAbout ? '\n\n' : '';
+            setProfile({ ...profile, about: currentAbout + separator + content });
         }
-    };    
+    } catch (err) {
+        console.error("Failed to fetch website content:", err);
+        alert("Failed to fetch website content.");
+    } finally {
+        setIsFetchingWebsite(false);
+    }
+}; 
 
     const handleSaveChanges = async () => {
         if (!profile) return;
@@ -299,17 +322,17 @@ const Profile: React.FC = () => {
                                     {isFetchingWebsite ? 'Fetching...' : 'Fetch and Append'}
                                 </button>
                             </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">Enter your website URL to automatically extract business details and append them below.</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">Beta: Enter your website URL to automatically extract business details and append them below. Please review generated information thoroughly, feature may not work with all websites.</p>
                         </div>
 
                          <div>
-                            <label htmlFor="about" className="block text-sm font-medium text-slate-700 dark:text-slate-300">About Your Business</label>
+                            <label htmlFor="about" className="block text-sm font-medium text-slate-700 dark:text-slate-300">About Your Business/ Services/ FAQs</label>
                             <textarea name="about" id="about" rows={3} value={profile.about} onChange={handleProfileChange} className="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-primary-500 focus:border-primary-500" placeholder="Give a brief description of your business for the chatbot."></textarea>
                         </div>
                         
                          <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Services Offered</label>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Provide a list of services the chatbot should know about.</p>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Sessions Offered</label>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Provide a list of sessions the chatbot should know about to book appointments. These would include a duration and price which can be '0' or free.</p>
                             <div className="space-y-3">
                                 {profile.services.map((service, index) => (
                                     <div key={index} className="flex items-center space-x-2 p-3 bg-slate-50 dark:bg-slate-900/70 rounded-lg border border-slate-200 dark:border-slate-700">

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { register } from '../services/api';
 import { Timezone } from '../types';
@@ -19,7 +20,24 @@ const Register: React.FC<RegisterProps> = ({ onRegisterSuccess }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
+  useEffect(() => {
+    getUTMSource();
+    const utm=new URLSearchParams(location.search)
+ 
+      console.log('UTM Source on load:', utm);
+    
+  }, []);
+
+  // Function to extract UTM source from URL
+  const getUTMSource = () => {
+    const params = new URLSearchParams(location.search);
+
+    console.log('UTM Source:', params.get('utm_source'));
+    return params.get('utm_source') || '';
+  };
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -29,8 +47,12 @@ const Register: React.FC<RegisterProps> = ({ onRegisterSuccess }) => {
     setIsLoading(true);
     setError('');
     try {
-      // The API service now handles saving the token
-      await register(formData);
+      // Add UTM source if present
+      const utmSource = getUTMSource();
+      const dataToSend = utmSource
+        ? { ...formData, affiliate_source: utmSource }
+        : formData;
+      await register(dataToSend);
       onRegisterSuccess();
       navigate('/');
     } catch (err: any) {
