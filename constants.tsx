@@ -2,7 +2,7 @@ import React from 'react';
 
 // IMPORTANT: Change this URL to your actual backend API address.
 // This is the base URL for all API requests.
-export const API_URL = 'https://4idii2equest-api.bizmitra-ai.com/api' ; //'http://localhost:3000/api' //
+export const API_URL = 'testapi.example.com/v1';
 
 export const NAV_ITEMS = [
   { 
