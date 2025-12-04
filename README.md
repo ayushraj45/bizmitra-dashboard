@@ -119,6 +119,3 @@ This project demonstrates:
 - Compliance with Meta and Google for scope and business verification and third party APIs, going beyond normal standards to deliver a strong project.
 
 It pairs with the BizMitra backend and WhatsApp infrastructure to form a complete, production‑grade, AI‑assisted business assistant platform.
-
-(https://github.com/ayushraj45/coping-ai)
-[2](https://github.com/ayushraj45/bizmitra-dashboard/tree/main/components)
